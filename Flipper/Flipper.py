@@ -149,6 +149,10 @@ class FlipperWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.flipButton_j.connect('clicked(bool)', self.onFlipButton_j)
         self.ui.flipButton_k.connect('clicked(bool)', self.onFlipButton_k)
 
+        self.ui.rotateButton_i.connect('clicked(bool)', self.onRotateButton_i)
+        self.ui.rotateButton_j.connect('clicked(bool)', self.onRotateButton_j)
+        self.ui.rotateButton_k.connect('clicked(bool)', self.onRotateButton_k)
+
         # Make sure parameter node is initialized (needed for module reload)
         self.initializeParameterNode()
 
@@ -253,10 +257,16 @@ class FlipperWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.flipButton_i.enabled = True
             self.ui.flipButton_j.enabled = True
             self.ui.flipButton_k.enabled = True
+            self.ui.rotateButton_i.enabled = True
+            self.ui.rotateButton_j.enabled = True
+            self.ui.rotateButton_k.enabled = True
         else:
             self.ui.flipButton_i.enabled = False
             self.ui.flipButton_j.enabled = False
             self.ui.flipButton_k.enabled = False
+            self.ui.rotateButton_i.enabled = False
+            self.ui.rotateButton_j.enabled = False
+            self.ui.rotateButton_k.enabled = False
 
         # All the GUI updates are done
         self._updatingGUIFromParameterNode = False
@@ -313,6 +323,25 @@ class FlipperWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         在k方向上翻转volume
         """
         self.onFlipButton(0)
+
+        
+    def onRotateButton_i(self):
+        """
+        在i方向上翻转volume
+        """
+        self.onRotateButton(0)
+        
+    def onRotateButton_j(self):
+        """
+        在j方向上翻转volume
+        """
+        self.onRotateButton(1)
+
+    def onRotateButton_k(self):
+        """
+        在k方向上翻转volume
+        """
+        self.onRotateButton(2)
     
     def _vtkimage2array(self, img):
         """
@@ -348,7 +377,46 @@ class FlipperWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         selectedArray = np.flip(selectedArray, axis=val)
 
         # self._array2volume(selectedArray, img)
-        print(selectedArray.shape)
+        # print(selectedArray.shape)
+        self._array2vtkimage(selectedArray, img)
+        selectedVolume.SetAndObserveImageData(img)
+
+        # 强制更新4个窗口
+        slicer.app.layoutManager().threeDWidget(0).threeDView().forceRender()
+        slicer.app.layoutManager().sliceWidget("Red").sliceView().forceRender()
+        slicer.app.layoutManager().sliceWidget("Yellow").sliceView().forceRender()
+        slicer.app.layoutManager().sliceWidget("Green").sliceView().forceRender()
+
+    def onRotateButton(self, val):
+        selectedVolume = self._parameterNode.GetNodeReference("InputVolume")
+        if selectedVolume:
+            pass
+        # newNode = slicer.vtkMRMLScalarVolumeNode()
+        # newNode.SetName('tempNode')
+        # # newNode.SetLabelMap(1)
+        # newNode = slicer.mrmlScene.AddNode(newNode)
+        # newNode.Copy(selectedVolume)
+        selectedArray = slicer.util.array(selectedVolume.GetID())
+        img = selectedVolume.GetImageData()
+
+        rotate_axs = []
+        for i in range(3):
+            if i != val:
+                rotate_axs.append(i)
+        selectedArray = np.rot90(selectedArray, 1, axes=rotate_axs)
+
+        spacing = selectedVolume.GetSpacing()
+        spacing = list(spacing)
+        spacing[2-rotate_axs[0]], spacing[2-rotate_axs[1]] = \
+            spacing[2-rotate_axs[1]], spacing[2-rotate_axs[0]]
+        selectedVolume.SetSpacing(spacing)
+        
+        dimensions = img.GetDimensions()
+        dimensions = list(dimensions)
+        dimensions[2-rotate_axs[0]], dimensions[2-rotate_axs[1]] = \
+            dimensions[2-rotate_axs[1]], dimensions[2-rotate_axs[0]]
+        img.SetDimensions(dimensions)
+        
         self._array2vtkimage(selectedArray, img)
         selectedVolume.SetAndObserveImageData(img)
 
