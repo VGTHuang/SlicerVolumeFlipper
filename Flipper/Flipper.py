@@ -383,12 +383,12 @@ class FlipperLogic(ScriptedLoadableModuleLogic):
         Initialize parameter node with default settings.
         """
         pass
-        if not parameterNode.GetParameter("flipped_i"):
-            parameterNode.SetParameter("flipped_i", False)
-        if not parameterNode.GetParameter("flipped_j"):
-            parameterNode.SetParameter("flipped_j", False)
-        if not parameterNode.GetParameter("flipped_k"):
-            parameterNode.SetParameter("flipped_k", False)
+        # if not parameterNode.GetParameter("flipped_i"):
+        #     parameterNode.SetParameter("flipped_i", False)
+        # if not parameterNode.GetParameter("flipped_j"):
+        #     parameterNode.SetParameter("flipped_j", False)
+        # if not parameterNode.GetParameter("flipped_k"):
+        #     parameterNode.SetParameter("flipped_k", False)
         # if not parameterNode.GetParameter("Threshold"):
         #     parameterNode.SetParameter("Threshold", "100.0")
         # if not parameterNode.GetParameter("Invert"):
